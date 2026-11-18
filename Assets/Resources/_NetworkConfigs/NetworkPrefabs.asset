@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e59ad3a29b000847a277b41adb6e732, type: 3}
+  m_Name: NetworkPrefabs
+  m_EditorClassIdentifier: Assembly-CSharp::Assets._Scripts._Core.NetworkPrefabs
+  SessionRoot: {fileID: 4373755773857951428, guid: 65a022a1faf2d5d4eba94b42acd5601f, type: 3}
+  Player: {fileID: 1657973874795134681, guid: 5f45e9d9110f50941a14ca954cb1fc9a, type: 3}
+  PhysicsItem: {fileID: 3294700539484213266, guid: decfef79f3f1b9646bff081765912bc1, type: 3}
