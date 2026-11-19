@@ -3,6 +3,7 @@ using Assets._Scripts._Core.Configs;
 using Assets._Scripts._Core.Network;
 using Assets._Scripts._Core.Services;
 using Assets._Scripts._DI_Container;
+using Assets._Scripts.Gameplay;
 using Assets._Scripts.UI;
 using Unity.Netcode;
 using UnityEngine;
@@ -13,6 +14,8 @@ public class GameScope : LifetimeScope
 {
     [SerializeField] private AppConfig _appConfig;
     [SerializeField] private NetworkManager _networkManagerPrefab;
+    [SerializeField] private NetworkPrefabsConfig _networkPrefabsConfig;
+    [SerializeField] private CharacterConfig _characterConfig;
     [SerializeField] private LoadingView _loadingView;
     private IObjectResolver _objectResolver;
 
@@ -21,12 +24,15 @@ public class GameScope : LifetimeScope
     {
         builder.RegisterEntryPoint<GameBootstrapper>();
         builder.RegisterEntryPoint<LoadingService>();
+        builder.RegisterEntryPoint<PlayerSpawner>();
 
         NetworkManager networkManagerInstance = SpawnNetworkManager();
 
         builder.RegisterInstance(_appConfig);
         builder.RegisterInstance(networkManagerInstance);
         builder.RegisterInstance(_loadingView);
+        builder.RegisterInstance(_networkPrefabsConfig);
+        builder.RegisterInstance(_characterConfig);
 
         builder.Register<TransportProvider>(Lifetime.Singleton);
         builder.Register<SteamSessionService>(Lifetime.Singleton);

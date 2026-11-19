@@ -1,6 +1,7 @@
 ﻿using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 
 namespace Assets._Scripts._Core
 {
@@ -22,7 +23,7 @@ namespace Assets._Scripts._Core
         public static void Inject(GameObject target)
         {
             if (_resolver != null && target != null)
-                _resolver.Inject(target);
+                _resolver.InjectGameObject(target); 
         }
     }
 }

@@ -127,6 +127,8 @@ MonoBehaviour:
   autoInjectGameObjects: []
   _appConfig: {fileID: 11400000, guid: 27ea49f8f99d6204fac153202de2e524, type: 2}
   _networkManagerPrefab: {fileID: 7099581601738183348, guid: 681ac557aa6b5d84e8db3f4f83be7c2a, type: 3}
+  _networkPrefabsConfig: {fileID: 11400000, guid: 927336b8019026f4f8610dff6f01c9cf, type: 2}
+  _characterConfig: {fileID: 11400000, guid: d1ef826a39ac897488d654dc4e1d7131, type: 2}
   _loadingView: {fileID: 6164795482947159440}
 --- !u!1 &3174916589237852464
 GameObject:
