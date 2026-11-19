@@ -23,7 +23,7 @@ namespace Assets._Scripts._Core.Services
         }
     }
 
-    public sealed class SteamSessionService : IDisposable
+    public class SteamSessionService : IDisposable
     {
         private readonly NetworkManager _networkManager;
         private readonly TransportProvider _transport;

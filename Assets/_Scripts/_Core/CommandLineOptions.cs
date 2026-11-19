@@ -10,7 +10,7 @@ namespace Assets._Scripts._Core
     ///   +connect_lobby 109775241234567890
     ///   -lag 150 -loss 5
     /// </summary>
-    public sealed class CommandLineOptions
+    public class CommandLineOptions
     {
         public TransportKind? Transport;
         public bool AutoHost;

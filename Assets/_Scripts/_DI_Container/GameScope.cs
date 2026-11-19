@@ -3,6 +3,7 @@ using Assets._Scripts._Core.Configs;
 using Assets._Scripts._Core.Network;
 using Assets._Scripts._Core.Services;
 using Assets._Scripts._DI_Container;
+using Assets._Scripts.UI;
 using Unity.Netcode;
 using UnityEngine;
 using VContainer;
@@ -12,17 +13,20 @@ public class GameScope : LifetimeScope
 {
     [SerializeField] private AppConfig _appConfig;
     [SerializeField] private NetworkManager _networkManagerPrefab;
+    [SerializeField] private LoadingView _loadingView;
     private IObjectResolver _objectResolver;
 
 
     protected override void Configure(IContainerBuilder builder)
     {
         builder.RegisterEntryPoint<GameBootstrapper>();
+        builder.RegisterEntryPoint<LoadingService>();
 
         NetworkManager networkManagerInstance = SpawnNetworkManager();
 
         builder.RegisterInstance(_appConfig);
         builder.RegisterInstance(networkManagerInstance);
+        builder.RegisterInstance(_loadingView);
 
         builder.Register<TransportProvider>(Lifetime.Singleton);
         builder.Register<SteamSessionService>(Lifetime.Singleton);
