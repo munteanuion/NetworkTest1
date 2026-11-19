@@ -84,3 +84,4 @@ __pycache__/
 
 # Test run artifacts (Test Runner XML parked in the project root by convention)
 /TestResults_*.xml
+/_BUILD

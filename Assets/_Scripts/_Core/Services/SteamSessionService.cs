@@ -1,17 +1,35 @@
 ﻿using System;
+using System.Collections.Generic;
 using Assets._Scripts._Core.Configs;
 using Assets._Scripts._Core.Network;
 using Steamworks;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Assets._Scripts._Core.Services
 {
+    public readonly struct LobbyPlayer
+    {
+        public readonly ulong Id;
+        public readonly string Name;
+        public readonly bool IsOwner;
+
+        public LobbyPlayer(ulong id, string name, bool isOwner)
+        {
+            Id = id;
+            Name = name;
+            IsOwner = isOwner;
+        }
+    }
+
     public sealed class SteamSessionService : IDisposable
     {
         private readonly NetworkManager _networkManager;
         private readonly TransportProvider _transport;
         private readonly AppConfig _config;
+
+        private readonly List<LobbyPlayer> _members = new();
 
         private bool _steamReady;
         private bool _busy;
@@ -19,11 +37,14 @@ namespace Assets._Scripts._Core.Services
 
         private CallResult<LobbyCreated_t> _createCall;
         private CallResult<LobbyEnter_t> _enterCall;
+        private Callback<LobbyChatUpdate_t> _lobbyChatUpdate;
 
         public bool IsSteamReady => _steamReady;
         public bool Busy => _busy;
         public bool InLobby => _lobby.m_SteamID != 0;
         public ulong LobbyId => _lobby.m_SteamID;
+        public int MaxPlayers => _config.MaxPlayers;
+        public int MemberVersion { get; private set; }
         public string Status { get; private set; } = "Offline";
 
 
@@ -59,6 +80,8 @@ namespace Assets._Scripts._Core.Services
 
                 _steamReady = true;
                 SteamNetworkingUtils.InitRelayNetworkAccess();
+                _lobbyChatUpdate = Callback<LobbyChatUpdate_t>.Create(OnLobbyChatUpdate);
+
                 Status = $"Steam: {SteamFriends.GetPersonaName()}";
                 return true;
             }
@@ -108,6 +131,7 @@ namespace Assets._Scripts._Core.Services
             }
 
             _lobby = new CSteamID(result.m_ulSteamIDLobby);
+            MemberVersion++;
 
             _transport.Select(TransportKind.Steam);
             _networkManager.NetworkConfig.ConnectionApproval = true;
@@ -124,7 +148,6 @@ namespace Assets._Scripts._Core.Services
 
             Status = $"Host | lobby: {_lobby.m_SteamID}";
             _busy = false;
-            GUIUtility.systemCopyBuffer = $"{_lobby.m_SteamID}";
         }
 
 
@@ -158,6 +181,7 @@ namespace Assets._Scripts._Core.Services
             }
 
             _lobby = new CSteamID(result.m_ulSteamIDLobby);
+            MemberVersion++;
 
             var hostSteamId = SteamMatchmaking.GetLobbyOwner(_lobby).m_SteamID;
             if (hostSteamId == 0 || hostSteamId == SteamUser.GetSteamID().m_SteamID)
@@ -187,6 +211,50 @@ namespace Assets._Scripts._Core.Services
         }
 
 
+        public void StartGame()
+        {
+            if (!_networkManager.IsServer || !_networkManager.IsListening)
+                return;
+
+            Status = "Starting game...";
+            _networkManager.SceneManager.LoadScene(_config.GameScene, LoadSceneMode.Single);
+        }
+
+
+        public IReadOnlyList<LobbyPlayer> GetLobbyPlayers()
+        {
+            _members.Clear();
+
+            if (!InLobby)
+                return _members;
+
+            var owner = SteamMatchmaking.GetLobbyOwner(_lobby);
+            var count = SteamMatchmaking.GetNumLobbyMembers(_lobby);
+
+            for (var i = 0; i < count; i++)
+            {
+                var id = SteamMatchmaking.GetLobbyMemberByIndex(_lobby, i);
+                _members.Add(new LobbyPlayer(id.m_SteamID, GetPlayerName(id.m_SteamID), id == owner));
+            }
+
+            return _members;
+        }
+
+
+        public string GetPlayerName(ulong steamId)
+        {
+            if (!_steamReady)
+                return steamId.ToString();
+
+            var id = new CSteamID(steamId);
+            var name = id == SteamUser.GetSteamID()
+                ? SteamFriends.GetPersonaName()
+                : SteamFriends.GetFriendPersonaName(id);
+
+            return string.IsNullOrEmpty(name) ? steamId.ToString() : name;
+        }
+
+
         public void Leave()
         {
             if (_networkManager.IsListening)
@@ -206,12 +274,19 @@ namespace Assets._Scripts._Core.Services
         }
 
 
+        private void OnLobbyChatUpdate(LobbyChatUpdate_t update)
+        {
+            MemberVersion++;
+        }
+
+
         private void LeaveLobby()
         {
             if (InLobby)
                 SteamMatchmaking.LeaveLobby(_lobby);
 
             _lobby = default;
+            MemberVersion++;
         }
 
 
@@ -228,6 +303,9 @@ namespace Assets._Scripts._Core.Services
         public void Dispose()
         {
             Leave();
+
+            _lobbyChatUpdate?.Dispose();
+            _lobbyChatUpdate = null;
 
             if (_steamReady)
             {
