@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 8522571334287894170}
   - component: {fileID: 6072609665387018261}
   - component: {fileID: 7859178133500166135}
+  - component: {fileID: 8050704088821696693}
   m_Layer: 0
   m_Name: --CharacterController--
   m_TagString: Untagged
@@ -50,7 +51,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1683243216
+  GlobalObjectIdHash: 2617033210
   InScenePlacedSourceGlobalObjectIdHash: 2617033210
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -152,6 +153,19 @@ MonoBehaviour:
   _controller: {fileID: 8522571334287894170}
   _cameraPivot: {fileID: 6784249032098864002}
   _camera: {fileID: 3134487893347667650}
+--- !u!114 &8050704088821696693
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1657973874795134681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a038bb58f173d147811098188299da8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets._Scripts.Gameplay.PlayerItems
+  ShowTopMostFoldoutHeaderGroup: 1
 --- !u!1 &2145988364780826566
 GameObject:
   m_ObjectHideFlags: 0

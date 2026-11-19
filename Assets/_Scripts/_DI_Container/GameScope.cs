@@ -13,6 +13,7 @@ using VContainer.Unity;
 public class GameScope : LifetimeScope
 {
     [SerializeField] private AppConfig _appConfig;
+    [SerializeField] private ItemsConfig _itemsConfig;
     [SerializeField] private NetworkManager _networkManagerPrefab;
     [SerializeField] private NetworkPrefabsConfig _networkPrefabsConfig;
     [SerializeField] private CharacterConfig _characterConfig;
@@ -33,6 +34,7 @@ public class GameScope : LifetimeScope
         builder.RegisterInstance(_loadingView);
         builder.RegisterInstance(_networkPrefabsConfig);
         builder.RegisterInstance(_characterConfig);
+        builder.RegisterInstance(_itemsConfig);
 
         builder.Register<TransportProvider>(Lifetime.Singleton);
         builder.Register<SteamSessionService>(Lifetime.Singleton);

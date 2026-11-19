@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7193269178921000530}
   - component: {fileID: -2072976263419697599}
   - component: {fileID: 4732047733260408650}
-  - component: {fileID: -4653721631019746134}
+  - component: {fileID: 6266285790719252298}
   m_Layer: 0
   m_Name: PhysicsItem
   m_TagString: Untagged
@@ -87,7 +87,7 @@ MonoBehaviour:
   RotationMaxInterpolationTime: 0.1
   ScaleLerpSmoothing: 1
   ScaleMaxInterpolationTime: 0.1
-  AuthorityMode: 0
+  AuthorityMode: 1
   TickSyncChildren: 0
   UseUnreliableDeltas: 0
   SyncPositionX: 1
@@ -135,8 +135,8 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
---- !u!114 &-4653721631019746134
+  m_CollisionDetection: 1
+--- !u!114 &6266285790719252298
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -145,14 +145,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 3294700539484213266}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
+  m_Script: {fileID: 11500000, guid: 3522bf69a88c0084a9d8d471f6dc522c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Components.NetworkRigidbody
+  m_EditorClassIdentifier: Assembly-CSharp::Assets._Scripts.Gameplay.NetworkItem
   ShowTopMostFoldoutHeaderGroup: 1
-  NetworkRigidbodyBaseExpanded: 0
-  UseRigidBodyForMotion: 0
-  AutoUpdateKinematicState: 1
-  AutoSetKinematicOnDespawn: 1
+  _rigidbody: {fileID: 4732047733260408650}
 --- !u!1 &3325115158174166053
 GameObject:
   m_ObjectHideFlags: 0
