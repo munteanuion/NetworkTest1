@@ -1,4 +1,4 @@
-﻿using Assets._Scripts._Core.Configs;
+using Assets._Scripts._Core.Configs;
 using Assets._Scripts._Core.Network;
 using Unity.Netcode;
 using UnityEngine;
@@ -59,7 +59,7 @@ namespace Assets._Scripts.Gameplay
         public override void OnNetworkDespawn()
         {
             if (IsServer && _heldItemServer != null)
-                ReleaseOnServer(_heldItemServer, true);
+                ReleaseOnServer(_heldItemServer, false);
 
             base.OnNetworkDespawn();
         }
@@ -164,7 +164,6 @@ namespace Assets._Scripts.Gameplay
 
             _heldItemServer = item;
             item.Holder.Value = senderId;
-            item.SetHeld(true);
             networkObject.ChangeOwnership(senderId);
         }
 
@@ -177,7 +176,6 @@ namespace Assets._Scripts.Gameplay
             _heldItemServer = null;
 
             item.Holder.Value = NetworkItem.NoHolder;
-            item.SetHeld(false);
             item.transform.position = transform.position + transform.forward * 1.2f + Vector3.up * 0.8f;
             item.Body.linearVelocity = Vector3.zero;
             item.NetworkObject.ChangeOwnership(NetworkManager.ServerClientId);
@@ -216,12 +214,15 @@ namespace Assets._Scripts.Gameplay
             if (item == null || !item.IsSpawned) return;
 
             item.Holder.Value = NetworkItem.NoHolder;
-            item.SetHeld(false);
             item.Body.linearVelocity = Vector3.zero;
 
             if (destroy)
+            {
                 item.NetworkObject.Despawn(true);
-            else
+                return;
+            }
+
+            if (NetworkManager.IsListening && item.NetworkObject.OwnerClientId != NetworkManager.ServerClientId)
                 item.NetworkObject.ChangeOwnership(NetworkManager.ServerClientId);
         }
 

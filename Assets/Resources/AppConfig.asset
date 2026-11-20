@@ -12,13 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c0fc4c87c7d64c4fa2d3a8bd04be0dc, type: 3}
   m_Name: AppConfig
   m_EditorClassIdentifier: Assembly-CSharp::Assets._Scripts._Core.AppConfig
-  BuildVersion: 0.1.0
-  DefaultTransport: 0
-  DirectPort: 7777
   MaxPlayers: 4
   MenuScene: MainMenu
   GameScene: Gameplay
-  LoadingTimeoutSeconds: 20
-  ConnectTimeoutSeconds: 10
   SteamAppId: 480
-  DefaultVisibility: 0

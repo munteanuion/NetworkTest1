@@ -9,7 +9,6 @@ namespace Assets._Scripts._Core.Configs
         public float GrabRange = 3.0f;
         public float GrabTolerance = 0.75f;
         public float ThrowSpeed = 9.0f;
-        public float ThrowChargeSeconds = 0.8f;
         public int MaxItems = 40;
         public float ItemSpawnCooldown = 0.5f;
     }

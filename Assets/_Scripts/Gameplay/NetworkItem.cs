@@ -18,12 +18,33 @@ namespace Assets._Scripts.Gameplay
         public Rigidbody Body => _rigidbody;
         public bool IsHeld => Holder.Value != NoHolder;
 
-        public void SetHeld(bool held)
+        protected override void OnSpawned()
+        {
+            Holder.OnValueChanged += OnHolderChanged;
+            RefreshPhysics();
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            Holder.OnValueChanged -= OnHolderChanged;
+            base.OnNetworkDespawn();
+        }
+
+        public override void OnGainedOwnership() => RefreshPhysics();
+        public override void OnLostOwnership() => RefreshPhysics();
+
+        private void OnHolderChanged(ulong previous, ulong current) => RefreshPhysics();
+
+        private void RefreshPhysics()
         {
             if (_rigidbody == null) return;
 
-            _rigidbody.isKinematic = held;
-            _rigidbody.interpolation = held ? RigidbodyInterpolation.None : RigidbodyInterpolation.Interpolate;
+            var simulate = IsOwner && !IsHeld;
+
+            _rigidbody.isKinematic = !simulate;
+            _rigidbody.interpolation = simulate
+                ? RigidbodyInterpolation.Interpolate
+                : RigidbodyInterpolation.None;
         }
 
         public void Throw(Vector3 velocity)

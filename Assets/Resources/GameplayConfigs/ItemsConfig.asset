@@ -15,6 +15,5 @@ MonoBehaviour:
   GrabRange: 3
   GrabTolerance: 0.75
   ThrowSpeed: 9
-  ThrowChargeSeconds: 0.8
   MaxItems: 40
   ItemSpawnCooldown: 0.5
