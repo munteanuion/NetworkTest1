@@ -65,17 +65,18 @@ namespace Assets._Scripts._Core.Network
             if (_synchronizing) return;
             if (sceneName != _gameScene) return;
 
-            if (!_view.gameObject.activeSelf)
-            {
-                _ready = 0;
-                _total = _networkManager.IsServer ? _networkManager.ConnectedClientsIds.Count : 0;
-            }
+            if (clientId != _networkManager.LocalClientId) return;
+
+            _ready = 0;
+            _total = _networkManager.IsServer ? _networkManager.ConnectedClientsIds.Count : 0;
 
             Show();
         }
 
         private void OnLoadComplete(ulong clientId, string sceneName, LoadSceneMode mode)
         {
+            if (!_view.gameObject.activeSelf) return;
+            if (_synchronizing) return;
             if (sceneName != _gameScene) return;
 
             _ready++;
@@ -94,7 +95,13 @@ namespace Assets._Scripts._Core.Network
 
         private void Show()
         {
-            _view.Show(_total > 0 ? $"Loading... {_ready}/{_total}" : "Loading...");
+            if (_total <= 0)
+            {
+                _view.Show("Loading...");
+                return;
+            }
+
+            _view.Show($"Loading... {Mathf.Min(_ready, _total)}/{_total}");
         }
 
         private void OnSync(ulong clientId)
