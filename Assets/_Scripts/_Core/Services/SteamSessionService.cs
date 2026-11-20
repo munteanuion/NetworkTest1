@@ -38,6 +38,7 @@ namespace Assets._Scripts._Core.Services
         private CallResult<LobbyCreated_t> _createCall;
         private CallResult<LobbyEnter_t> _enterCall;
         private Callback<LobbyChatUpdate_t> _lobbyChatUpdate;
+        private Callback<GameRichPresenceJoinRequested_t> _joinRequested;
 
         public bool IsSteamReady => _steamReady;
         public bool Busy => _busy;
@@ -83,6 +84,7 @@ namespace Assets._Scripts._Core.Services
                 _steamReady = true;
                 SteamNetworkingUtils.InitRelayNetworkAccess();
                 _lobbyChatUpdate = Callback<LobbyChatUpdate_t>.Create(OnLobbyChatUpdate);
+                _joinRequested = Callback<GameRichPresenceJoinRequested_t>.Create(OnJoinRequested);
                 _networkManager.OnClientDisconnectCallback += OnClientDisconnected;
                 _networkManager.OnClientStopped += OnClientStopped;
 
@@ -286,6 +288,13 @@ namespace Assets._Scripts._Core.Services
         {
             if (!InLobby) return;
 
+            if (!SteamUtils.IsOverlayEnabled())
+            {
+                GUIUtility.systemCopyBuffer = _lobby.m_SteamID.ToString();
+                Debug.Log("[Steam] Overlay is disabled. Lobby id copied to the clipboard instead.");
+                return;
+            }
+
             SteamFriends.ActivateGameOverlayInviteDialog(_lobby);
             Debug.Log($"[Steam] Invite overlay requested for lobby {_lobby.m_SteamID}");
         }
@@ -312,6 +321,26 @@ namespace Assets._Scripts._Core.Services
         private void OnLobbyChatUpdate(LobbyChatUpdate_t update)
         {
             MemberVersion++;
+        }
+
+
+        private void OnJoinRequested(GameRichPresenceJoinRequested_t request)
+        {
+            var connect = request.m_rgchConnect ?? string.Empty;
+            Debug.Log($"[Steam] Join requested: '{connect}'");
+
+            const string key = "+connect_lobby";
+            var index = connect.IndexOf(key, StringComparison.OrdinalIgnoreCase);
+            if (index < 0) return;
+
+            var value = connect.Substring(index + key.Length).Trim();
+
+            var end = value.IndexOf(' ');
+            if (end >= 0)
+                value = value.Substring(0, end);
+
+            if (ulong.TryParse(value, out var lobbyId))
+                Join(lobbyId);
         }
 
 
@@ -396,6 +425,9 @@ namespace Assets._Scripts._Core.Services
 
             _lobbyChatUpdate?.Dispose();
             _lobbyChatUpdate = null;
+
+            _joinRequested?.Dispose();
+            _joinRequested = null;
 
             if (_steamReady)
             {
