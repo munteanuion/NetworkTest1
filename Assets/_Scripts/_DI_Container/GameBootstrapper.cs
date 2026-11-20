@@ -1,4 +1,5 @@
-﻿using Assets._Scripts._Core.Services;
+﻿using Assets._Scripts._Core;
+using Assets._Scripts._Core.Services;
 using System;
 using VContainer.Unity;
 
@@ -8,18 +9,25 @@ namespace Assets._Scripts._DI_Container
     {
         private readonly SteamSessionService _steamSessionService;
 
-
-        public GameBootstrapper(
-            SteamSessionService steamSessionService
-            )
+        public GameBootstrapper(SteamSessionService steamSessionService)
         {
             _steamSessionService = steamSessionService;
         }
 
-
         public void Start()
         {
             _steamSessionService.Initialize();
+
+            var options = CommandLineOptions.Parse(Environment.GetCommandLineArgs());
+
+            if (options.ConnectLobbyId.HasValue)
+            {
+                _steamSessionService.Join(options.ConnectLobbyId.Value);
+                return;
+            }
+
+            if (options.AutoHost)
+                _steamSessionService.Host();
         }
 
         public void Tick()

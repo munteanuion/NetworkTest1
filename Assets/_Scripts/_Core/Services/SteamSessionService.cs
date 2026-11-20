@@ -46,6 +46,9 @@ namespace Assets._Scripts._Core.Services
         public int MaxPlayers => _config.MaxPlayers;
         public int MemberVersion { get; private set; }
         public string Status { get; private set; } = "Offline";
+        private bool _leaving;
+        private bool _returningToMenu;
+        private string _disconnectReason;
 
 
         public SteamSessionService(
@@ -77,10 +80,11 @@ namespace Assets._Scripts._Core.Services
                     Status = "Steam is not running.";
                     return false;
                 }
-
                 _steamReady = true;
                 SteamNetworkingUtils.InitRelayNetworkAccess();
                 _lobbyChatUpdate = Callback<LobbyChatUpdate_t>.Create(OnLobbyChatUpdate);
+                _networkManager.OnClientDisconnectCallback += OnClientDisconnected;
+                _networkManager.OnClientStopped += OnClientStopped;
 
                 Status = $"Steam: {SteamFriends.GetPersonaName()}";
                 return true;
@@ -107,6 +111,8 @@ namespace Assets._Scripts._Core.Services
                 return;
 
             _busy = true;
+            _returningToMenu = false;
+            _disconnectReason = null;
             Status = "Creating lobby...";
 
             _createCall = CallResult<LobbyCreated_t>.Create(OnLobbyCreated);
@@ -147,6 +153,7 @@ namespace Assets._Scripts._Core.Services
             }
 
             Status = $"Host | lobby: {_lobby.m_SteamID}";
+            UpdatePresence("In lobby");
             _busy = false;
         }
 
@@ -157,6 +164,8 @@ namespace Assets._Scripts._Core.Services
                 return;
 
             _busy = true;
+            _returningToMenu = false;
+            _disconnectReason = null;
             Status = "Joining lobby...";
 
             _enterCall = CallResult<LobbyEnter_t>.Create(OnLobbyEntered);
@@ -207,6 +216,7 @@ namespace Assets._Scripts._Core.Services
             }
 
             Status = $"Joining host {hostSteamId}...";
+            UpdatePresence("In lobby");
             _busy = false;
         }
 
@@ -217,6 +227,7 @@ namespace Assets._Scripts._Core.Services
                 return;
 
             Status = "Starting game...";
+            UpdatePresence("In game");
             _networkManager.SceneManager.LoadScene(_config.GameScene, LoadSceneMode.Single);
         }
 
@@ -257,10 +268,14 @@ namespace Assets._Scripts._Core.Services
 
         public void Leave()
         {
+            _leaving = true;
+            _disconnectReason = null;
+
             if (_networkManager.IsListening)
                 _networkManager.Shutdown();
 
             LeaveLobby();
+            _leaving = false;
 
             if (_steamReady)
                 Status = "Offline";
@@ -269,8 +284,28 @@ namespace Assets._Scripts._Core.Services
 
         public void OpenInvite()
         {
-            if (InLobby)
-                SteamFriends.ActivateGameOverlayInviteDialog(_lobby);
+            if (!InLobby) return;
+
+            SteamFriends.ActivateGameOverlayInviteDialog(_lobby);
+            Debug.Log($"[Steam] Invite overlay requested for lobby {_lobby.m_SteamID}");
+        }
+
+
+        /// <summary>
+        /// Publishes the lobby to the friends list so "Join Game" is available.
+        /// </summary>
+        private void UpdatePresence(string status)
+        {
+            if (!_steamReady) return;
+
+            if (!InLobby)
+            {
+                SteamFriends.ClearRichPresence();
+                return;
+            }
+
+            SteamFriends.SetRichPresence("connect", $"+connect_lobby {_lobby.m_SteamID}");
+            SteamFriends.SetRichPresence("status", status);
         }
 
 
@@ -287,22 +322,77 @@ namespace Assets._Scripts._Core.Services
 
             _lobby = default;
             MemberVersion++;
+
+            if (_steamReady)
+                SteamFriends.ClearRichPresence();
         }
 
 
-        private static void Approve(
+        private void Approve(
             NetworkManager.ConnectionApprovalRequest request,
             NetworkManager.ConnectionApprovalResponse response)
         {
+            foreach (var clientId in _networkManager.ConnectedClientsIds)
+            {
+                if (clientId == request.ClientNetworkId)
+                {
+                    response.Approved = false;
+                    response.Reason = "You are already in this session.";
+                    return;
+                }
+            }
+
+            if (_networkManager.ConnectedClientsIds.Count >= _config.MaxPlayers)
+            {
+                response.Approved = false;
+                response.Reason = "Session is full.";
+                return;
+            }
+
             response.Approved = true;
             response.CreatePlayerObject = false;
             response.Pending = false;
         }
 
 
+        private void OnClientDisconnected(ulong clientId)
+        {
+            if (_networkManager.IsServer || _leaving) return;
+
+            _disconnectReason = _networkManager.DisconnectReason;
+            LeaveLobby();
+
+            if (!string.IsNullOrEmpty(_disconnectReason))
+                Status = _disconnectReason;
+        }
+
+
+        /// <summary>
+        /// A client that loses the host returns to the main menu with a message.
+        /// </summary>
+        private void OnClientStopped(bool wasClean)
+        {
+            if (_networkManager.IsServer || _leaving || _returningToMenu) return;
+            if (SceneManager.GetActiveScene().name == _config.MenuScene) return;
+
+            _returningToMenu = true;
+
+            Status = string.IsNullOrEmpty(_disconnectReason)
+                ? "Disconnected from the host."
+                : _disconnectReason;
+
+            _disconnectReason = null;
+
+            SceneManager.LoadScene(_config.MenuScene);
+        }
+
+
         public void Dispose()
         {
             Leave();
+
+            _networkManager.OnClientDisconnectCallback -= OnClientDisconnected;
+            _networkManager.OnClientStopped -= OnClientStopped;
 
             _lobbyChatUpdate?.Dispose();
             _lobbyChatUpdate = null;
